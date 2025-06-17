@@ -14,7 +14,7 @@
 <p align="center"><a href="https://youtu.be/Uzof6djzD-M"> <img src="https://img.shields.io/badge/Railway%20Deploy-black?style=for-the-badge&logo=railway" width="220" height="38.45"/></a></p> 
 
 <p align="center">Heroku </p>
-<p align="center"><a href="http://dashboard.heroku.com/new?template=https://github.com/Itz-Zaid/Telethon-Music"> <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-pink?style=for-the-badge&logo=heroku" width="220" height="38.45"/></a></p>
+<p align="center"><a href="http://dashboard.heroku.com/new?template=https://github.com/jothepro43/SecondDream"> <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-pink?style=for-the-badge&logo=heroku" width="220" height="38.45"/></a></p>
 
 ## Local Deployment Process
 ```sh
