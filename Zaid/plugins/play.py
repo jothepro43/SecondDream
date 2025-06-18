@@ -23,13 +23,15 @@ from telethon.tl import types
 from telethon.utils import get_display_name
 from telethon.tl.functions.users import GetFullUserRequest
 from youtubesearchpython import VideosSearch
+import asyncio
+import logging
+import re
+from yt_dlp import YoutubeDL
 
- 
 fotoplay = "https://telegra.ph/file/b6402152be44d90836339.jpg"
 ngantri = "https://telegra.ph/file/b6402152be44d90836339.jpg"
 from Zaid import call_py, Zaid, client as Client
 owner = "1669178360"
-from Zaid.helpers.yt_dlp import bash
 from Zaid.helpers.chattitle import CHAT_TITLE
 from Zaid.helpers.queues import (
     QUEUE,
@@ -67,11 +69,33 @@ def ytsearch(query: str):
         return 0
 
 
-async def ytdl(format: str, link: str):
-    stdout, stderr = await bash(f'yt-dlp -g -f "{format}" {link}')
-    if stdout:
-        return 1, stdout.split("\n")[0]
-    return 0, stderr
+async def ytdl(format: str, query: str):
+    """Fetch a direct media URL using yt-dlp.
+
+    Args:
+        format (str): yt-dlp format string.
+        query (str): YouTube URL or search term.
+
+    Returns:
+        Tuple[int, str]: (1, url) on success, (0, error) on failure.
+    """
+
+    def _extract() -> str:
+        ydl_opts = {"format": format, "quiet": True}
+        with YoutubeDL(ydl_opts) as ydl:
+            target = query if re.match(r"https?://", query) else f"ytsearch:{query}"
+            info = ydl.extract_info(target, download=False)
+            if isinstance(info, dict) and info.get("entries"):
+                info = info["entries"][0]
+            return info["url"]
+
+    loop = asyncio.get_event_loop()
+    try:
+        url = await loop.run_in_executor(None, _extract)
+        return 1, url
+    except Exception as e:
+        logging.error("yt-dlp extraction error for %s: %s", query, e)
+        return 0, str(e)
 
 
 async def skip_item(chat_id: int, x: int):
