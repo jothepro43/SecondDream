@@ -69,12 +69,14 @@ def ytsearch(query: str):
         return 0
 
 
-async def ytdl(format: str, query: str):
+async def ytdl(format: str, query: str, event=None):
     """Fetch a direct media URL using yt-dlp.
 
     Args:
         format (str): yt-dlp format string.
         query (str): YouTube URL or search term.
+        event (telethon.events.NewMessage.Event, optional): event used to
+            send error logs back to Telegram.
 
     Returns:
         Tuple[int, str]: (1, url) on success, (0, error) on failure.
@@ -95,6 +97,8 @@ async def ytdl(format: str, query: str):
         return 1, url
     except Exception as e:
         logging.error("yt-dlp extraction error for %s: %s", query, e)
+        if event:
+            await event.reply(f"**ERROR:** `{e}`")
         return 0, str(e)
 
 
@@ -194,7 +198,7 @@ async def play(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await botman.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
@@ -317,7 +321,7 @@ async def vplay(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await xnxx.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
@@ -403,7 +407,7 @@ async def vplay(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await xnxx.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
