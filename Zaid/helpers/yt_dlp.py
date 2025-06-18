@@ -1,4 +1,5 @@
 import re
+import logging
 import hashlib
 import asyncio
 import shlex
@@ -64,6 +65,14 @@ ydl = YoutubeDL(ydl_opts)
 
 
 def download_lagu(url: str) -> str:
-    info = ydl.extract_info(url, download=False)
-    ydl.download([url])
-    return os.path.join("downloads", f"{info['id']}.{info['ext']}")
+    """Download audio from a YouTube URL or search term."""
+    try:
+        target = url if re.match(r"https?://", url) else f"ytsearch:{url}"
+        info = ydl.extract_info(target, download=False)
+        if isinstance(info, dict) and info.get("entries"):
+            info = info["entries"][0]
+        ydl.download([info["webpage_url"]])
+        return os.path.join("downloads", f"{info['id']}.{info['ext']}")
+    except Exception as e:
+        logging.error("yt-dlp download error for %s: %s", url, e)
+        return ""
