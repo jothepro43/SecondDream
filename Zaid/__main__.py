@@ -47,6 +47,10 @@ async def start_bot() -> None:
     logger.info("ASSISTANT ID %s", botid)
     await asyncio.create_task(leave_from_inactive_call())
 
+def main() -> None:
+    load_all_plugins()
+    asyncio.run(start_bot())
+    
 logger.info("SUCCESSFULLY STARTED BOT!")
 logger.info("VISIT @TheUpdatesChannel")
 
