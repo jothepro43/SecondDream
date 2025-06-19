@@ -11,4 +11,4 @@ def load_plugins(plugin_name):
     load.logger = logging.getLogger(plugin_name)
     spec.loader.exec_module(load)
     sys.modules["Zaid.plugins." + plugin_name] = load
-    print("Bot has Started " + plugin_name)
+    logging.getLogger(__name__).info("Plugin loaded %s", plugin_name)
