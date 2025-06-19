@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 api = Api(app)
 
+
 class Greeting(Resource):
     def get(self):
         logger.info("Greeting endpoint called")
         return "Telethon Music is Up & Running!"
+
 
 api.add_resource(Greeting, '/')
 

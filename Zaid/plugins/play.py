@@ -21,7 +21,6 @@ import telethon.utils
 from telethon.tl import functions
 from telethon.tl import types
 from telethon.utils import get_display_name
-from telethon.tl.functions.users import GetFullUserRequest
 from youtubesearchpython import VideosSearch
 import asyncio
 import logging
