@@ -15,8 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
-                    level=logging.INFO)
+    asyncio.run(start_bot())
 logger = logging.getLogger(__name__)
 
 path = "Zaid/plugins/*.py"
