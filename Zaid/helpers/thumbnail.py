@@ -134,5 +134,5 @@ async def gen_thumb(videoid):
         background.save(f"cache/{videoid}_{anime}.png")
         return f"cache/{videoid}_{anime}.png"
     except Exception as e:
-        print(e)
+        logging.getLogger(__name__).error("Thumbnail generation error: %s", e)
         return YOUTUBE_IMG_URL
