@@ -21,12 +21,13 @@ import telethon.utils
 from telethon.tl import functions
 from telethon.tl import types
 from telethon.utils import get_display_name
-from telethon.tl.functions.users import GetFullUserRequest
 from youtubesearchpython import VideosSearch
 import asyncio
 import logging
 import re
 from yt_dlp import YoutubeDL
+
+logger = logging.getLogger(__name__)
 
 fotoplay = "https://telegra.ph/file/b6402152be44d90836339.jpg"
 ngantri = "https://telegra.ph/file/b6402152be44d90836339.jpg"
@@ -65,7 +66,7 @@ def ytsearch(query: str):
         videoid = data["id"]
         return [songname, url, duration, thumbnail, videoid]
     except Exception as e:
-        print(e)
+        logger.error("ytsearch failed for %s: %s", query, e)
         return 0
 
 
@@ -79,11 +80,7 @@ async def has_active_vc(chat_id: int) -> bool:
 
 
 async def ytdl(format: str, query: str, event=None):
-
-
-    Returns:
-        Tuple[int, str]: (1, url) on success, (0, error) on failure.
-    """
+    """Return a direct media URL using yt-dlp."""
 
     def _extract() -> str:
         ydl_opts = {"format": format, "quiet": True}
@@ -94,15 +91,14 @@ async def ytdl(format: str, query: str, event=None):
                 info = info["entries"][0]
             return info["url"]
 
-    loop = asyncio.get_event_loop()
     try:
-        url = await loop.run_in_executor(None, _extract)
+        url = await asyncio.to_thread(_extract)
         return 1, url
     except Exception as e:
-        logging.error("yt-dlp extraction error for %s: %s", query, e)
-
+        logger.error("yt-dlp extraction error for %s: %s", query, e)
         if event:
             await event.reply(f"**ERROR:** `{e}`")
+        return 0, str(e)
 
 
 async def skip_item(chat_id: int, x: int):
@@ -114,7 +110,7 @@ async def skip_item(chat_id: int, x: int):
         chat_queue.pop(x)
         return songname
     except Exception as e:
-        print(e)
+        logger.error("Error skipping item in queue: %s", e)
         return 0
 
 
@@ -123,6 +119,7 @@ async def skip_current_song(chat_id: int):
         return 0
     chat_queue = get_queue(chat_id)
     if len(chat_queue) == 1:
+        logger.info("Voice chat %s ended", chat_id)
         await call_py.leave_group_call(chat_id)
         clear_queue(chat_id)
         active.remove(chat_id)
@@ -150,6 +147,7 @@ async def skip_current_song(chat_id: int):
             chat_id, AudioVideoPiped(url, HighQualityAudio(), hm)
         )
     pop_an_item(chat_id)
+    logger.info("Now playing next song in chat %s", chat_id)
     return [songname, link, type]
 
 
@@ -567,7 +565,7 @@ async def vc_resume(event, perm):
 @call_py.on_stream_end()
 async def stream_end_handler(_, u: Update):
     chat_id = u.chat_id
-    print(chat_id)
+    logger.info("Stream ended in chat %s", chat_id)
     await skip_current_song(chat_id)
 
 

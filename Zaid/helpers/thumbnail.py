@@ -44,7 +44,8 @@ async def gen_thumb(videoid):
         for result in (await results.next())["result"]:
             try:
                 title = result["title"]
-                title = re.sub("\W+", " ", title)
+                # sanitize any non-word characters for PIL text drawing
+                title = re.sub(r"\W+", " ", title)
                 title = title.title()
             except:
                 title = "Unsupported Title"
@@ -134,5 +135,5 @@ async def gen_thumb(videoid):
         background.save(f"cache/{videoid}_{anime}.png")
         return f"cache/{videoid}_{anime}.png"
     except Exception as e:
-        print(e)
+        logging.getLogger(__name__).error("Thumbnail generation error: %s", e)
         return YOUTUBE_IMG_URL
