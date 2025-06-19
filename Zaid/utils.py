@@ -22,3 +22,9 @@ def load_plugins(plugin_name):
         return
     sys.modules[name] = module
     logger.info("Plugin loaded %s", plugin_name)
+
+    load = importlib.util.module_from_spec(spec)
+    load.logger = logging.getLogger(plugin_name)
+    spec.loader.exec_module(load)
+    sys.modules["Zaid.plugins." + plugin_name] = load
+    logging.getLogger(__name__).info("Plugin loaded %s", plugin_name)

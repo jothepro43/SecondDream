@@ -18,7 +18,6 @@ class Greeting(Resource):
 
 api.add_resource(Greeting, '/')
 
-
 def main() -> None:
     port = int(os.environ.get("PORT", 8080))
     logger.info("Starting server on port %s", port)
