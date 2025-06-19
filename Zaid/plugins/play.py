@@ -9,7 +9,7 @@ from pytgcalls.types.input_stream.quality import (
 )
 from telethon.tl.functions.channels import LeaveChannelRequest
 from telethon.tl.functions.messages import ImportChatInviteRequest
-from telethon.tl.functions.messages import ImportChatInviteRequest
+from telethon.tl.functions.channels import GetFullChannelRequest
 from pytgcalls.exceptions import (
     NoActiveGroupCall,
     NotInGroupCallError
@@ -23,13 +23,15 @@ from telethon.tl import types
 from telethon.utils import get_display_name
 from telethon.tl.functions.users import GetFullUserRequest
 from youtubesearchpython import VideosSearch
+import asyncio
+import logging
+import re
+from yt_dlp import YoutubeDL
 
- 
 fotoplay = "https://telegra.ph/file/b6402152be44d90836339.jpg"
 ngantri = "https://telegra.ph/file/b6402152be44d90836339.jpg"
 from Zaid import call_py, Zaid, client as Client
 owner = "1669178360"
-from Zaid.helpers.yt_dlp import bash
 from Zaid.helpers.chattitle import CHAT_TITLE
 from Zaid.helpers.queues import (
     QUEUE,
@@ -67,11 +69,46 @@ def ytsearch(query: str):
         return 0
 
 
-async def ytdl(format: str, link: str):
-    stdout, stderr = await bash(f'yt-dlp -g -f "{format}" {link}')
-    if stdout:
-        return 1, stdout.split("\n")[0]
-    return 0, stderr
+async def has_active_vc(chat_id: int) -> bool:
+    """Return True if an active voice chat exists in the given chat."""
+    try:
+        full = await Client(GetFullChannelRequest(chat_id))
+        return bool(getattr(full.full_chat, 'call', None))
+    except Exception:
+        return False
+
+
+async def ytdl(format: str, query: str, event=None):
+    """Fetch a direct media URL using yt-dlp.
+
+    Args:
+        format (str): yt-dlp format string.
+        query (str): YouTube URL or search term.
+        event (telethon.events.NewMessage.Event, optional): event used to
+            send error logs back to Telegram.
+
+    Returns:
+        Tuple[int, str]: (1, url) on success, (0, error) on failure.
+    """
+
+    def _extract() -> str:
+        ydl_opts = {"format": format, "quiet": True}
+        with YoutubeDL(ydl_opts) as ydl:
+            target = query if re.match(r"https?://", query) else f"ytsearch:{query}"
+            info = ydl.extract_info(target, download=False)
+            if isinstance(info, dict) and info.get("entries"):
+                info = info["entries"][0]
+            return info["url"]
+
+    loop = asyncio.get_event_loop()
+    try:
+        url = await loop.run_in_executor(None, _extract)
+        return 1, url
+    except Exception as e:
+        logging.error("yt-dlp extraction error for %s: %s", query, e)
+        if event:
+            await event.reply(f"**ERROR:** `{e}`")
+        return 0, str(e)
 
 
 async def skip_item(chat_id: int, x: int):
@@ -170,7 +207,7 @@ async def play(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await botman.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
@@ -180,6 +217,9 @@ async def play(event):
                 await event.client.send_file(chat_id, thumb, caption=caption, buttons=btnn)
             else:
                 try:
+                    if not await has_active_vc(chat_id):
+                        await botman.edit("Start a voice chat and try again.")
+                        return
                     await call_py.join_group_call(
                         chat_id,
                         AudioPiped(
@@ -210,6 +250,9 @@ async def play(event):
             await botman.delete()
         else:
             try:
+                if not await has_active_vc(chat_id):
+                    await botman.edit("Start a voice chat and try again.")
+                    return
                 await call_py.join_group_call(
                     chat_id,
                     AudioPiped(
@@ -293,7 +336,7 @@ async def vplay(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await xnxx.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
@@ -304,6 +347,9 @@ async def vplay(event):
                 await event.client.send_file(chat_id, thumb, caption=caption, buttons=btnn)
             else:
                 try:
+                    if not await has_active_vc(chat_id):
+                        await xnxx.edit("Start a voice chat and try again.")
+                        return
                     await call_py.join_group_call(
                         chat_id,
                         AudioVideoPiped(ytlink, HighQualityAudio(), hmmm),
@@ -349,6 +395,9 @@ async def vplay(event):
             elif RESOLUSI == 720:
                 hmmm = HighQualityVideo()
             try:
+                if not await has_active_vc(chat_id):
+                    await xnxx.edit("Start a voice chat and try again.")
+                    return
                 await call_py.join_group_call(
                     chat_id,
                     AudioVideoPiped(dl, HighQualityAudio(), hmmm),
@@ -379,7 +428,7 @@ async def vplay(event):
             ctitle = await CHAT_TITLE(titlegc)
             thumb = await gen_thumb(videoid)
             format = "best[height<=?720][width<=?1280]"
-            hm, ytlink = await ytdl(format, url)
+            hm, ytlink = await ytdl(format, url, event)
             if hm == 0:
                 await xnxx.edit(f"`{ytlink}`")
             elif chat_id in QUEUE:
@@ -390,6 +439,9 @@ async def vplay(event):
                 await event.client.send_file(chat_id, thumb, caption=caption, buttons=btnn)
             else:
                 try:
+                    if not await has_active_vc(chat_id):
+                        await xnxx.edit("Start a voice chat and try again.")
+                        return
                     await call_py.join_group_call(
                         chat_id,
                         AudioVideoPiped(ytlink, HighQualityAudio(), hmmm),

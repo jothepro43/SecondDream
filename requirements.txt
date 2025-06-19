@@ -1,9 +1,9 @@
-telethon==1.24.0
-py-tgcalls==0.9.7
+telethon>=1.40.0
+py-tgcalls>=2.2.3
 requests
 pillow
 aiofile
-yt-dlp
+yt-dlp @ https://github.com/yt-dlp/yt-dlp/archive/refs/heads/master.zip
 aiofiles
 youtube-search-python
 speedtest-cli
